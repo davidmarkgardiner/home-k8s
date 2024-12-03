@@ -1,0 +1,28 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- script: |
+    echo "Starting test script"
+    ./test-script.sh
+  displayName: 'Run test script'
+  env:
+    SYSTEM_DEBUG: true
+  continueOnError: true
+
+- script: |
+    echo "Pipeline variables and environment:"
+    env | sort
+  displayName: 'Debug info'
+  condition: always()
+
+- script: |
+    echo "##[debug]Task state and outputs:"
+    echo "##[command]Last exit code: $?"
+    echo "##[warning]This is a sample warning"
+    echo "##[error]This is a sample error"
+  displayName: 'Task output demo'
+  condition: always()
