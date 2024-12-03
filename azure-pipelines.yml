@@ -6,23 +6,54 @@ pool:
 
 steps:
 - script: |
-    echo "Starting test script"
-    ./test-script.sh
-  displayName: 'Run test script'
+    # Test different message types
+    echo "##vso[task.logissue type=warning;sourcepath=src/app.js;linenumber=42;columnnumber=5;code=WARN001;]Warning: Deprecated function used"
+    echo "##vso[task.logissue type=error;sourcepath=src/config.yaml;linenumber=10;columnnumber=1;code=ERR001;]Error: Invalid configuration detected"
+    
+    # Test task progress
+    echo "##vso[task.setprogress value=0;]Starting tests..."
+    sleep 1
+    echo "##vso[task.setprogress value=50;]Halfway through..."
+    sleep 1
+    echo "##vso[task.setprogress value=100;]Tests completed"
+    
+    # Test task result
+    echo "##vso[task.complete result=SucceededWithIssues;]Task completed with some warnings"
+    
+    # Test variables
+    echo "##vso[task.setvariable variable=TestStatus;]Passed"
+    echo "##vso[task.setvariable variable=TestCount;]42"
+    
+    # Test sections and debug levels
+    echo "##[section]Starting Test Section"
+    echo "##[command]Running command: npm test"
+    echo "##[debug]Debug information: test environment initialized"
+    echo "##[warning]Warning: Test coverage below threshold"
+    echo "##[error]Error: Test failed unexpectedly"
+    echo "##[section]Ending Test Section"
+  displayName: 'Test Pipeline Logging'
   env:
     SYSTEM_DEBUG: true
+
+- script: |
+    echo "Variables set in previous step:"
+    echo "TestStatus: $(TestStatus)"
+    echo "TestCount: $(TestCount)"
+  displayName: 'Check Variables'
+  condition: always()
+
+- script: |
+    # Simulate a task with multiple status updates
+    echo "##vso[task.logissue type=warning]This is a process warning"
+    echo "Processing step 1..."
+    echo "##vso[task.setprogress value=25;]25% Complete"
+    sleep 1
+    
+    echo "Processing step 2..."
+    echo "##vso[task.setprogress value=50;]50% Complete"
+    echo "##vso[task.logissue type=error;sourcepath=process.js;linenumber=15;]Critical error in process"
+    sleep 1
+    
+    echo "##vso[task.complete result=Failed;]Process failed with errors"
+  displayName: 'Simulate Process with Errors'
   continueOnError: true
-
-- script: |
-    echo "Pipeline variables and environment:"
-    env | sort
-  displayName: 'Debug info'
-  condition: always()
-
-- script: |
-    echo "##[debug]Task state and outputs:"
-    echo "##[command]Last exit code: $?"
-    echo "##[warning]This is a sample warning"
-    echo "##[error]This is a sample error"
-  displayName: 'Task output demo'
-  condition: always()
